@@ -379,6 +379,7 @@
                 'NO_CAN_TAKE_LIGHT':   'FLAG_NO_CAN_TAKE_LIGHT',
                 'NO_FOG':              'FLAG_NO_FOG',
                 'RAIN_OPACITY':        'FLAG_RAIN_OPACITY',
+                'TORCH_FLAME':         'FLAG_TORCH_FLAME',
                 'WAVES_VERTEX':        'FLAG_WAVES_VERTEX',
             }})])    
         },
