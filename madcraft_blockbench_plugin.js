@@ -3,7 +3,7 @@
     const property_name = 'madcraft'
     const removables = []
     const deletables = []
-    const default_value = {flags: [], json: null}
+    const default_value = {flags: [], json: null, material: 'regular'}
     const default_value_string = JSON.stringify(default_value)
     const madcraft_css = `
     .madcraft-widget {
@@ -266,6 +266,53 @@
 
     }
 
+    // Editor select
+    class MadcraftSelectWidget  extends MadcraftPropertyEditWidget {
+
+        constructor(id, data) {
+            super(id, data)
+            this.type = 'selectedit'
+            this.controls.push(this.createSelectPropertyControl(this.value_name, data.options))
+            this.createWidgetNode()
+        }
+
+        createSelectPropertyControl(property_name, options) {
+
+            const select = Interface.createElement('select', {class: 'madcraft-select'})
+            const select_control_box = Interface.createElement('div', {class: 'select_control_box'}, [select])
+
+            const redrawSelect = () => {
+                const props = this.getProps()
+                const options_html = []
+                options_html.push(`<option value="">Select...</option>`)
+                for(const [title, value] of Object.entries(options)) {
+                    const selected = props ? (props[property_name] == value ? 'selected' : null) : null
+                    options_html.push(`<option value="${value}" ${selected}>${title}</option>`)
+                }
+                select.innerHTML = options_html.join('\n')
+            }
+
+            //
+            select.addEventListener('change', (e) => {
+                if(this.element) {
+                    const value = e.srcElement.value
+                    if(value) {
+                        const props = this.getProps()
+                        if(props) {
+                            props[property_name] = value
+                            // redrawSelect()
+                        }
+                    }
+                }
+            })
+
+            redrawSelect()
+
+            return {update: () => {redrawSelect()}, nodes: [select_control_box]}
+        }
+
+    }
+
     //
     class MyToolbar extends Toolbar {
 
@@ -367,6 +414,12 @@
             initDisplay()
             // Create toolbars
             createToolbar('Madcraft JSON', [new MadcraftJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
+            createToolbar('Madcraft material', [new MadcraftSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
+                'Regular':                  'regular',
+                'Doubleface':               'doubleface',
+                'Transparent':              'transparent',
+                'Doubleface + Transparent': 'doubleface_transparent'
+            }})])
             createToolbar('Madcraft flags', [new MadcraftMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
                 'FLUID_ERASE':         'FLAG_FLUID_ERASE',
@@ -381,7 +434,7 @@
                 'RAIN_OPACITY':        'FLAG_RAIN_OPACITY',
                 'TORCH_FLAME':         'FLAG_TORCH_FLAME',
                 'WAVES_VERTEX':        'FLAG_WAVES_VERTEX',
-            }})])    
+            }})])
         },
 
         onunload() {
