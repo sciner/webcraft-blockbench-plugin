@@ -415,10 +415,13 @@
             // Create toolbars
             createToolbar('Madcraft JSON', [new MadcraftJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
             createToolbar('Madcraft material', [new MadcraftSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
+                'Solid':                    'solid',
+                'Doubleface solid':         'doubleface_solid',
                 'Regular':                  'regular',
                 'Doubleface':               'doubleface',
                 'Transparent':              'transparent',
-                'Doubleface + Transparent': 'doubleface_transparent'
+                'Doubleface + Transparent': 'doubleface_transparent',
+                'Decal near':               'decal_near',
             }})])
             createToolbar('Madcraft flags', [new MadcraftMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
