@@ -3,7 +3,7 @@
     const property_name = 'madcraft'
     const removables = []
     const deletables = []
-    const default_value = {flags: [], json: null, material: 'regular'}
+    const default_value = {flags: [], json: null, material: 'solid'}
     const default_value_string = JSON.stringify(default_value)
     const madcraft_css = `
     .madcraft-widget {
