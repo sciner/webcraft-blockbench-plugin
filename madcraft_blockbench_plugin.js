@@ -3,7 +3,7 @@
     const property_name = 'madcraft'
     const removables = []
     const deletables = []
-    const default_value = {flags: [], json: null, material: 'solid'}
+    const default_value = {flags: [], json: null, material: 'regular'}
     const default_value_string = JSON.stringify(default_value)
     const madcraft_css = `
     .madcraft-widget {
@@ -415,10 +415,10 @@
             // Create toolbars
             createToolbar('Madcraft JSON', [new MadcraftJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
             createToolbar('Madcraft material', [new MadcraftSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
-                'Solid':                    'solid',
-                'Doubleface solid':         'doubleface_solid',
                 'Regular':                  'regular',
+                'Singleface':               'singleface',
                 'Doubleface':               'doubleface',
+                'Doubleface solid':         'doubleface_solid',
                 'Transparent':              'transparent',
                 'Doubleface + Transparent': 'doubleface_transparent',
                 'Decal near':               'decal_near',
