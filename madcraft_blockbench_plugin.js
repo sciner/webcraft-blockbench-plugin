@@ -421,7 +421,8 @@
                 'Doubleface solid':         'doubleface_solid',
                 'Transparent':              'transparent',
                 'Doubleface + Transparent': 'doubleface_transparent',
-                'Decal near':               'decal_near',
+                'Decal 1':                  'decal1',
+                'Decal 2':                  'decal2',
             }})])
             createToolbar('Madcraft flags', [new MadcraftMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
