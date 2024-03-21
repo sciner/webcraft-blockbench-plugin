@@ -438,6 +438,7 @@
                 'RAIN_OPACITY':        'FLAG_RAIN_OPACITY',
                 'TORCH_FLAME':         'FLAG_TORCH_FLAME',
                 'WAVES_VERTEX':        'FLAG_WAVES_VERTEX',
+                'NORMAL_UP':           'FLAG_NORMAL_UP',
             }})])
         },
 
