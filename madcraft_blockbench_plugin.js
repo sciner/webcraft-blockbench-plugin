@@ -440,6 +440,115 @@
                 'WAVES_VERTEX':        'FLAG_WAVES_VERTEX',
                 'NORMAL_UP':           'FLAG_NORMAL_UP',
             }})])
+
+            // animations search
+            let div
+            let input
+            let last_query = ''
+
+            const panel = Interface.Panels.animations
+            const colors_key = 'madcraft-anim_colors'
+
+            const def_colors = {
+                idle:        '#DFCFBE',
+                firstperson: '#D65076',
+                emote:       '#f4d90a',
+                walk:        '#009B77',
+                sitting:     '#88B04B',
+                levitate:    '#92A8D1',
+                sneak:       '#B565A7',
+                sleep:       '#EFC050',
+                attack:      '#E15D44',
+            }
+
+            function loadColors() {
+                let str = localStorage.getItem(colors_key) || JSON.stringify(def_colors, null, 4)
+                let json = JSON.parse(str) || def_colors
+                return json
+            }
+
+            function saveColors(colors) {
+                let json = JSON.parse(colors)
+                if(json) {
+                    localStorage.setItem(colors_key, colors)
+                    anim_colors = json
+                    filterAnimations(last_query)
+                }
+            }
+
+            let anim_colors = loadColors()
+
+            let text_prop = JSON.stringify(anim_colors, null, 4)
+            const dialog = new Dialog({
+                id: colors_key,
+                title: 'Enter JSON Colors',
+                form: {
+                    custom_text: { label: 'Colors', type: 'textarea', value: text_prop },
+                },
+                onConfirm(form_result) {
+                    text_prop = form_result.custom_text
+                    saveColors(text_prop)
+                }
+            })
+
+            function filterAnimations(query) {
+                const lower = query.toLowerCase()
+                last_query = lower
+                Animator.animations.forEach(anim => {
+                    const list_elem = panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
+                    if (!list_elem) {
+                        console.log('no list_elem')
+                        return
+                    }
+                    const name = anim.name.toLowerCase()
+                    let color = '#ffffff22'
+                    for(const [key, value] of Object.entries(anim_colors)) {
+                        if(name.startsWith(key)) {
+                            color = value
+                            break
+                        }
+                    }
+                    list_elem.style.borderLeft = `4px solid ${color}`
+                    list_elem.style.display = name.includes(lower) ? '' : 'none'
+                })
+            }
+
+            function addSearchField() {
+                const anim_list = panel.node.querySelector('.toolbar')
+                if (!anim_list) return
+                if (!div || !document.body.contains(div)) {
+                    div = document.createElement('div')
+                    div.style.display = 'flex'
+                    div.style.flexDirection = 'row'
+                    input = document.createElement('input')
+                    input.placeholder = 'Search animations...'
+                    input.style.margin = '4px'
+                    input.style.width = '100%'
+                    input.style.paddingLeft = '.9em'
+                    input.style.margin = '0px'
+                    input.value = last_query
+                    input.oninput = () => filterAnimations(input.value)
+                    div.appendChild(input)
+                    const button = document.createElement('button')
+                    button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
+                    button.style.margin = '0px'
+                    button.style.minWidth = 'auto'
+                    button.onclick = () => dialog.show()
+                    div.appendChild(button)
+                }
+                if (div.parentElement !== anim_list.parentElement) {
+                    anim_list.appendChild(div)
+                }
+                filterAnimations(input.value)
+            }
+
+            panel.on('update', (args) => {
+                console.log('panel:on', args)
+                if(args.show) {
+                    addSearchField()
+                }
+            })
+
         },
 
         onunload() {
