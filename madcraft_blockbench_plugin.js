@@ -494,6 +494,19 @@
             function filterAnimations(query) {
                 const lower = query.toLowerCase()
                 last_query = lower
+
+                function toggleGroup(el, is_group) {
+                    el.style.backgroundColor = is_group ? '#ffffff22' : 'unset'
+                    for(const child of el.children) {
+                        const classes = child.classList
+                        if(classes.contains('material-icons') || classes.contains('in_list_button')) {
+                            child.style.display = is_group ? 'none' : 'unset'
+                        } else if(child.tagName == 'LABEL') {
+                            child.style.textAlign = is_group ? 'center' : 'left'
+                        }
+                    }
+                }
+
                 Animator.animations.forEach(anim => {
                     const list_elem = panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
                     if (!list_elem) {
@@ -510,6 +523,7 @@
                     }
                     list_elem.style.borderLeft = `4px solid ${color}`
                     list_elem.style.display = name.includes(lower) ? '' : 'none'
+                    toggleGroup(list_elem, name.includes('888') || name.includes('---') || name.includes('==='))
                 })
             }
 
