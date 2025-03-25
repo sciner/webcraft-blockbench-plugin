@@ -515,8 +515,9 @@ x
 
                 }
 
+                // dialog
                 createDialog() {
-                    // dialog
+                    const that = this    
                     let prop = JSON.stringify(this.anim_colors, null, 4)
                     this.dialog = new Dialog({
                         id: this.colors_key,
@@ -526,7 +527,7 @@ x
                         },
                         onConfirm(form_result) {
                             prop = form_result.custom_text
-                            saveColors(prop)
+                            that.saveColors(prop)
                         }
                     })
                 }
@@ -645,7 +646,7 @@ x
                         button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
                         button.style.margin = '0px'
                         button.style.minWidth = 'auto'
-                        button.onclick = () => dialog.show()
+                        button.onclick = () => this.dialog.show()
                         div.appendChild(button)
                     }
                     if (div.parentElement !== anim_list.parentElement) {
