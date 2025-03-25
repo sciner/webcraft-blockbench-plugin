@@ -399,7 +399,7 @@
         author: 'Madcraft',
         description: 'This plugin can add custom properties to all selected cubes',
         icon: 'developer_mode',
-        version: '0.0.1',
+        version: '0.0.2',
         variant: 'both',
         about: "This plugin is specifically designed as a tool for the developers of the MadCraft game.\n\nIt introduces the following features:\n\n1. **Adding a Display**: The \"Add display\" feature in the \"Edit\" section allows developers to introduce display elements into the game.\n\n2. **Cube Flags Management**: This feature enables developers to assign flags to cubes, providing enhanced flexibility and control over their behavior.\n\n3. **Custom JSON Assignment to Cubes**: With this feature, developers can assign custom JSON to cubes. This opens up creative possibilities for interpreting and utilizing these JSONs within the game as the developers see fit.\n\nThese features are intended to facilitate the development process and provide expanded customization opportunities in MadCraft.",
         tags: ["Plugins", "Madcraft"],
@@ -442,12 +442,6 @@
             }})])
 
             // animations search
-            let div
-            let input
-            let last_query = ''
-
-            const panel = Interface.Panels.animations
-            const colors_key = 'madcraft-anim_colors'
 
             const def_colors = {
                 idle:        '#DFCFBE',
@@ -461,42 +455,134 @@
                 attack:      '#E15D44',
             }
 
-            function loadColors() {
-                let str = localStorage.getItem(colors_key) || JSON.stringify(def_colors, null, 4)
-                let json = JSON.parse(str) || def_colors
-                return json
+            class MadcraftProject {
+x
+                constructor(id) {
+                    this.id = id
+                    this.groups = {}
+                    this.save_key = `madcraft_project_${id}`
+                    this.load()
+                }
+
+                load() {
+                    let saved_data = localStorage.getItem(this.save_key)
+                    saved_data = saved_data ? JSON.parse(saved_data) : null
+                    if(saved_data) {
+                        Object.assign(this, saved_data)
+                    }
+                }
+
+                save() {
+                    const saved_data = {
+                        groups: this.groups
+                    }
+                    localStorage.setItem(this.save_key, JSON.stringify(saved_data))
+                }
+
+                getGroup(name) {
+                    let group = this.groups[name]
+                    if(!group) {
+                        group = this.groups[name] = {folded: false}
+                    }
+                    return group
+                }
+
             }
 
-            function saveColors(colors) {
-                let json = JSON.parse(colors)
-                if(json) {
-                    localStorage.setItem(colors_key, colors)
-                    anim_colors = json
-                    filterAnimations(last_query)
+            class MadcraftPlugin {
+                projects = new Map()
+                div
+                input
+                last_query = ''
+                anim_colors = {}
+                dialog = null
+                MadCraftProjects = new Map()
+                panel = Interface.Panels.animations
+                colors_key = 'madcraft-anim_colors'
+    
+                constructor() {
+                        
+                    this.anim_colors = this.loadColors()
+
+                    this.createDialog()
+        
+                    this.panel.on('update', (args) => {
+                        console.log('panel:on', args)
+                        if(args.show) {
+                            this.addSearchField()
+                        }
+                    })
+
                 }
-            }
 
-            let anim_colors = loadColors()
-
-            let text_prop = JSON.stringify(anim_colors, null, 4)
-            const dialog = new Dialog({
-                id: colors_key,
-                title: 'Enter JSON Colors',
-                form: {
-                    custom_text: { label: 'Colors', type: 'textarea', value: text_prop },
-                },
-                onConfirm(form_result) {
-                    text_prop = form_result.custom_text
-                    saveColors(text_prop)
+                createDialog() {
+                    // dialog
+                    let prop = JSON.stringify(this.anim_colors, null, 4)
+                    this.dialog = new Dialog({
+                        id: this.colors_key,
+                        title: 'Enter JSON Colors',
+                        form: {
+                            custom_text: { label: 'Colors', type: 'textarea', value: prop },
+                        },
+                        onConfirm(form_result) {
+                            prop = form_result.custom_text
+                            saveColors(prop)
+                        }
+                    })
                 }
-            })
 
-            function filterAnimations(query) {
-                const lower = query.toLowerCase()
-                last_query = lower
+                getProjectID() {
+                    return Project.name
+                }
+    
+                getProject() {
+                    const id = this.getProjectID()
+                    // return Project.madcraft_project
+                    let project = this.projects.get(id)
+                    if(project) {
+                        return project
+                    }
+                    project = new MadcraftProject(id)
+                    this.projects.set(project.id, project)
+                    return project
+                }
 
-                function toggleGroup(el, is_group) {
-                    el.style.backgroundColor = is_group ? '#ffffff22' : 'unset'
+                loadColors() {
+                    let str = localStorage.getItem(this.colors_key) || JSON.stringify(def_colors, null, 4)
+                    let json = JSON.parse(str) || def_colors
+                    return json
+                }
+    
+                saveColors(colors) {
+                    let json = JSON.parse(colors)
+                    if(json) {
+                        localStorage.setItem(this.colors_key, colors)
+                        Object.assign(this.anim_colors, json)
+                        this.filterAnimations(this.last_query)
+                    }
+                }
+
+                toggleGroup(el, group_name, is_group) {
+                    const { input } = this
+                    el.style.backgroundColor = is_group ? '#ffffff22' : 'revert-layer'
+                    // toggler
+                    let toggler = el.querySelector('.icon-open-state')
+                    if(!toggler) {
+                        toggler = document.createElement('i')
+                        toggler.classList.add('icon-open-state', 'fa', 'fa-angle-down')
+                        toggler.style.display = 'flex'
+                        toggler.style.alignItems = 'center'
+                        toggler.onclick = () => {
+                            const project = this.getProject()
+                            const group = project.getGroup(group_name)
+                            group.folded = !group.folded
+                            project.save()
+                            this.filterAnimations(input.value)
+                        }
+                        el.prepend(toggler)
+                    }
+                    toggler.style.display = is_group ? 'flex' : 'none'
+                    // 
                     for(const child of el.children) {
                         const classes = child.classList
                         if(classes.contains('material-icons') || classes.contains('in_list_button')) {
@@ -507,61 +593,85 @@
                     }
                 }
 
-                Animator.animations.forEach(anim => {
-                    const list_elem = panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
-                    if (!list_elem) {
-                        console.log('no list_elem')
-                        return
-                    }
-                    const name = anim.name.toLowerCase()
-                    let color = '#ffffff22'
-                    for(const [key, value] of Object.entries(anim_colors)) {
-                        if(name.startsWith(key)) {
-                            color = value
-                            break
+                filterAnimations(query) {
+                    const lower = this.last_query = query.toLowerCase()
+                    let group_name = '_root_'
+                    const project = this.getProject()
+
+                    Animator.animations.forEach(anim => {
+                        const list_elem = this.panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
+                        if (!list_elem) {
+                            console.log('no list_elem')
+                            return
                         }
+                        const name = anim.name.toLowerCase()
+                        let color = '#ffffff22'
+                        for(const [key, value] of Object.entries(this.anim_colors)) {
+                            if(name.startsWith(key)) {
+                                color = value
+                                break
+                            }
+                        }
+                        let is_group = name.includes('888') || name.includes('---') || name.includes('===')
+                        if(is_group) {
+                            group_name = name
+                        }
+                        const group_visible = !project.getGroup(group_name).folded
+                        let is_visible = (name.includes(lower) && group_visible) || is_group
+                        list_elem.style.borderLeft = `4px solid ${color}`
+                        list_elem.style.display = is_visible ? 'revert-layer' : 'none'
+                        this.toggleGroup(list_elem, group_name, is_group)
+                    })
+                }
+
+                addSearchField() {
+                    const anim_list = this.panel.node.querySelector('.toolbar')
+                    if (!anim_list) return
+                    let div = this.div
+                    if (!div || !document.body.contains(div)) {
+                        div = this.div = document.createElement('div')
+                        div.style.display = 'flex'
+                        div.style.flexDirection = 'row'
+                        const input = this.input = document.createElement('input')
+                        input.placeholder = 'Search animations...'
+                        input.style.margin = '4px'
+                        input.style.width = '100%'
+                        input.style.paddingLeft = '.9em'
+                        input.style.margin = '0px'
+                        input.value = this.last_query
+                        input.oninput = () => this.filterAnimations(input.value)
+                        div.appendChild(input)
+                        const button = document.createElement('button')
+                        button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
+                        button.style.margin = '0px'
+                        button.style.minWidth = 'auto'
+                        button.onclick = () => dialog.show()
+                        div.appendChild(button)
                     }
-                    list_elem.style.borderLeft = `4px solid ${color}`
-                    list_elem.style.display = name.includes(lower) ? '' : 'none'
-                    toggleGroup(list_elem, name.includes('888') || name.includes('---') || name.includes('==='))
-                })
+                    if (div.parentElement !== anim_list.parentElement) {
+                        anim_list.appendChild(div)
+                    }
+                    this.filterAnimations(this.input.value)
+                }
+
             }
 
-            function addSearchField() {
-                const anim_list = panel.node.querySelector('.toolbar')
-                if (!anim_list) return
-                if (!div || !document.body.contains(div)) {
-                    div = document.createElement('div')
-                    div.style.display = 'flex'
-                    div.style.flexDirection = 'row'
-                    input = document.createElement('input')
-                    input.placeholder = 'Search animations...'
-                    input.style.margin = '4px'
-                    input.style.width = '100%'
-                    input.style.paddingLeft = '.9em'
-                    input.style.margin = '0px'
-                    input.value = last_query
-                    input.oninput = () => filterAnimations(input.value)
-                    div.appendChild(input)
-                    const button = document.createElement('button')
-                    button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
-                    button.style.margin = '0px'
-                    button.style.minWidth = 'auto'
-                    button.onclick = () => dialog.show()
-                    div.appendChild(button)
-                }
-                if (div.parentElement !== anim_list.parentElement) {
-                    anim_list.appendChild(div)
-                }
-                filterAnimations(input.value)
-            }
+            const madcraft_plugin = new MadcraftPlugin()
 
-            panel.on('update', (args) => {
-                console.log('panel:on', args)
-                if(args.show) {
-                    addSearchField()
-                }
+            Blockbench.on('load_project', data => {
+                // Project.madcraft_project = data.model.madcraft_project || {
+                //     groups: {}
+                // }
+                // Project.madcraft_project = data.model.madcraft_project || {
+                //     groups: {}
+                // }
+                madcraft_plugin.addSearchField()
             })
+            
+            // Blockbench.on('save_project', (event) => {
+            //     event.model.madcraft_project = Project.madcraft_project
+            // })
+
 
         },
 
