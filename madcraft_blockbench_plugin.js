@@ -1,5 +1,17 @@
 (function() {
 
+    const info = {
+        title: 'Tesera game plugin',
+        author: 'Tesera',
+        description: 'This plugin can add custom properties to all selected cubes',
+        icon: 'developer_mode',
+        version: '0.0.3',
+        variant: 'both',
+        about: "This plugin is specifically designed as a tool for the developers of the Tesera game.\n\nIt introduces the following features:\n\n1. **Adding a Display**: The \"Add display\" feature in the \"Edit\" section allows developers to introduce display elements into the game.\n\n2. **Cube Flags Management**: This feature enables developers to assign flags to cubes, providing enhanced flexibility and control over their behavior.\n\n3. **Custom JSON Assignment to Cubes**: With this feature, developers can assign custom JSON to cubes. This opens up creative possibilities for interpreting and utilizing these JSONs within the game as the developers see fit.\n\n4. **Animation Tools Enhancement**: Adds a search bar for quickly finding animations by name and introduces customizable color highlighting for animation groups, improving organization and readability within the animation workspace.\n\nThese features are intended to facilitate the development process and provide expanded customization opportunities in Tesera.",
+        tags: ["Plugins", "Tesera"],
+        min_version: "4.7.4",
+    }
+
     const property_name = 'madcraft'
     const removables = []
     const deletables = []
@@ -68,7 +80,9 @@
     .madcraft-select {
         width: 100%;
         border-radius: 4px;
-        margin-top: 2px;
+        appearance: auto;
+        padding: 0 .5em;
+        height: 2em;
     }
     .panel_tab_list > .panel_handle {
         background-color: #3e90ff55;
@@ -76,6 +90,12 @@
     }
     .panel_tab_list > .panel_handle.selected {
         background-color: var(--color-accent);
+    }
+    .panel_tab_bar {
+        border-bottom: 1px solid var(--color-accent);
+    }
+    .panel_menu_button {
+        color: white;
     }
     `
 
@@ -415,15 +435,7 @@
     }
 
     Plugin.register('madcraft_blockbench_plugin', {
-        title: 'Tesera game plugin',
-        author: 'Tesera',
-        description: 'This plugin can add custom properties to all selected cubes',
-        icon: 'developer_mode',
-        version: '0.0.2',
-        variant: 'both',
-        about: "This plugin is specifically designed as a tool for the developers of the Tesera game.\n\nIt introduces the following features:\n\n1. **Adding a Display**: The \"Add display\" feature in the \"Edit\" section allows developers to introduce display elements into the game.\n\n2. **Cube Flags Management**: This feature enables developers to assign flags to cubes, providing enhanced flexibility and control over their behavior.\n\n3. **Custom JSON Assignment to Cubes**: With this feature, developers can assign custom JSON to cubes. This opens up creative possibilities for interpreting and utilizing these JSONs within the game as the developers see fit.\n\nThese features are intended to facilitate the development process and provide expanded customization opportunities in Tesera.",
-        tags: ["Plugins", "Tesera"],
-        min_version: "4.7.4",
+        ...info,
 
         onload() {
             // Create new property for all Cubes
