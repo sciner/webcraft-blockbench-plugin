@@ -70,9 +70,16 @@
         border-radius: 4px;
         margin-top: 2px;
     }
+    .panel_tab_list > .panel_handle {
+        background-color: #3e90ff55;
+        color: white;
+    }
+    .panel_tab_list > .panel_handle.selected {
+        background-color: var(--color-accent);
+    }
     `
 
-    class MadcraftPropertyEditWidget extends Widget {
+    class TeseraPropertyEditWidget extends Widget {
 
         controls = []
 
@@ -135,7 +142,7 @@
     }
 
     // Edit JSON
-    class MadcraftJSONWidget extends MadcraftPropertyEditWidget {
+    class TeseraJSONWidget extends TeseraPropertyEditWidget {
 
         constructor(id, data) {
             super(id, data)
@@ -188,7 +195,7 @@
     }
 
     // Editor multiselect
-    class MadcraftMultiselectWidget extends MadcraftPropertyEditWidget {
+    class TeseraMultiselectWidget extends TeseraPropertyEditWidget {
 
         constructor(id, data) {
             super(id, data)
@@ -267,7 +274,7 @@
     }
 
     // Editor select
-    class MadcraftSelectWidget  extends MadcraftPropertyEditWidget {
+    class TeseraSelectWidget  extends TeseraPropertyEditWidget {
 
         constructor(id, data) {
             super(id, data)
@@ -344,77 +351,90 @@
 
     // Init display
     function initDisplay() {
-        class DisplayElement extends Cube {
-            has_uv_cube_face_bar = true;
-            constructor(data, uuid) {
-                super(data, uuid)
-                this.name = 'display'
-            }
-
-            get type() {
-                // TODO: dirty hack
-                return new Error().stack.includes('vue.min.js') ? 'cube' : 'display'
-            }
-        }
-        DisplayElement.prototype.title = 'Display';
-        // DisplayElement.prototype.type = 'display';
-        DisplayElement.prototype.icon = 'fa fa-image';
-        DisplayElement.prototype.needsUniqueName = true;
-        // TODO: clone peoperties
-        // DisplayElement.properties
-        // deletables.push(new Property(DisplayElement, 'string', 'name', {default: 'display'}))
-        OutlinerElement.registerType(DisplayElement, 'display')
-        let add_action = new Action('add_display', {
-            name: 'Add Display',
-            icon: 'fa-image',
-            category: 'edit',
-            condition: () => Modes.edit,
-            click() {
-                Undo.initEdit({outliner: true, elements: [], selection: true});
-                var base_display = new DisplayElement().init()
-                var group = getCurrentGroup();
-                base_display.addTo(group)
-                if (Format.bone_rig && group) {
-                    var pos1 = group.origin.slice()
-                    base_display.extend({
-                        position: pos1
-                    })
+        try {
+            class DisplayElement extends Cube {
+                has_uv_cube_face_bar = true;
+                constructor(data, uuid) {
+                    super(data, uuid)
+                    this.name = 'display'
+                    this.type = 'display'
                 }
-    
-                if (Group.selected) Group.selected.unselect()
-                base_display.select()
-                Undo.finishEdit('Add display', {outliner: true, elements: selected, selection: true});
-                Blockbench.dispatchEvent( 'add_display', {object: base_display} )
-                return base_display
+
+                // Если нужно кастомизировать экспорт в JSON (для сохранения модели)
+                toJSON() {
+                    let json = super.toJSON()
+                    // json.customProperty = this.customProperty // кастомные данные
+                    json.type = 'display'
+                    return json
+                }
+
+                // get type() {
+                //     // TODO: dirty hack
+                //     return new Error().stack.includes('vue.min.js') ? 'cube' : 'display'
+                // }
             }
-        })
-        Interface.Panels.outliner.menu.addAction(add_action, '3')
-        Toolbars.outliner.add(add_action, '3')
-        MenuBar.menus.edit.addAction(add_action, '8')
-        deletables.push(add_action)
+            DisplayElement.prototype.title = 'Display';
+            // DisplayElement.prototype.type = 'display';
+            DisplayElement.prototype.icon = 'fa fa-image';
+            DisplayElement.prototype.needsUniqueName = true;
+            // TODO: clone peoperties
+            // DisplayElement.properties
+            // deletables.push(new Property(DisplayElement, 'string', 'name', {default: 'display'}))
+            OutlinerElement.registerType(DisplayElement, 'display')
+            let add_action = new Action('add_display', {
+                name: 'Add Display',
+                icon: 'fa-image',
+                category: 'edit',
+                condition: () => Modes.edit,
+                click() {
+                    Undo.initEdit({outliner: true, elements: [], selection: true});
+                    var base_display = new DisplayElement().init()
+                    var group = getCurrentGroup();
+                    base_display.addTo(group)
+                    if (Format.bone_rig && group) {
+                        var pos1 = group.origin.slice()
+                        base_display.extend({
+                            position: pos1
+                        })
+                    }
+        
+                    if (Group.selected) Group.selected.unselect()
+                    base_display.select()
+                    Undo.finishEdit('Add display', {outliner: true, elements: selected, selection: true});
+                    Blockbench.dispatchEvent( 'add_display', {object: base_display} )
+                    return base_display
+                }
+            })
+            Interface.Panels.outliner.menu.addAction(add_action, '3')
+            Toolbars.outliner.add(add_action, '3')
+            MenuBar.menus.edit.addAction(add_action, '8')
+            deletables.push(add_action)
+        } catch(e) {
+            console.error(e)
+        }
     }
 
     Plugin.register('madcraft_blockbench_plugin', {
-        title: 'Madcraft game plugin',
-        author: 'Madcraft',
+        title: 'Tesera game plugin',
+        author: 'Tesera',
         description: 'This plugin can add custom properties to all selected cubes',
         icon: 'developer_mode',
         version: '0.0.2',
         variant: 'both',
-        about: "This plugin is specifically designed as a tool for the developers of the MadCraft game.\n\nIt introduces the following features:\n\n1. **Adding a Display**: The \"Add display\" feature in the \"Edit\" section allows developers to introduce display elements into the game.\n\n2. **Cube Flags Management**: This feature enables developers to assign flags to cubes, providing enhanced flexibility and control over their behavior.\n\n3. **Custom JSON Assignment to Cubes**: With this feature, developers can assign custom JSON to cubes. This opens up creative possibilities for interpreting and utilizing these JSONs within the game as the developers see fit.\n\nThese features are intended to facilitate the development process and provide expanded customization opportunities in MadCraft.",
-        tags: ["Plugins", "Madcraft"],
+        about: "This plugin is specifically designed as a tool for the developers of the Tesera game.\n\nIt introduces the following features:\n\n1. **Adding a Display**: The \"Add display\" feature in the \"Edit\" section allows developers to introduce display elements into the game.\n\n2. **Cube Flags Management**: This feature enables developers to assign flags to cubes, providing enhanced flexibility and control over their behavior.\n\n3. **Custom JSON Assignment to Cubes**: With this feature, developers can assign custom JSON to cubes. This opens up creative possibilities for interpreting and utilizing these JSONs within the game as the developers see fit.\n\nThese features are intended to facilitate the development process and provide expanded customization opportunities in Tesera.",
+        tags: ["Plugins", "Tesera"],
         min_version: "4.7.4",
 
         onload() {
             // Create new property for all Cubes
-            deletables.push(new Property(Cube, 'instance', property_name, {default: null, exposed: true, label: "Madcraft cube properties" }))
+            deletables.push(new Property(Cube, 'instance', property_name, {default: null, exposed: true, label: "Tesera cube properties" }))
             // CSS
             Blockbench.addCSS(madcraft_css)
             // Display
             initDisplay()
             // Create toolbars
-            createToolbar('Madcraft JSON', [new MadcraftJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
-            createToolbar('Madcraft material', [new MadcraftSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
+            createToolbar('Tesera JSON', [new TeseraJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
+            createToolbar('Tesera material', [new TeseraSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
                 'Regular':                  'regular',
                 'Singleface':               'singleface',
                 'Doubleface':               'doubleface',
@@ -424,7 +444,7 @@
                 'Decal 1':                  'decal1',
                 'Decal 2':                  'decal2',
             }})])
-            createToolbar('Madcraft flags', [new MadcraftMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
+            createToolbar('Tesera flags', [new TeseraMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
                 'FLUID_ERASE':         'FLAG_FLUID_ERASE',
                 'LEAVES':              'FLAG_LEAVES',
@@ -455,7 +475,7 @@
                 attack:      '#E15D44',
             }
 
-            class MadcraftProject {
+            class TeseraProject {
 x
                 constructor(id) {
                     this.id = id
@@ -489,7 +509,7 @@ x
 
             }
 
-            class MadcraftPlugin {
+            class TeseraPlugin {
                 projects = new Map()
                 div
                 input
@@ -543,7 +563,7 @@ x
                     if(project) {
                         return project
                     }
-                    project = new MadcraftProject(id)
+                    project = new TeseraProject(id)
                     this.projects.set(project.id, project)
                     return project
                 }
@@ -657,7 +677,7 @@ x
 
             }
 
-            const madcraft_plugin = new MadcraftPlugin()
+            const madcraft_plugin = new TeseraPlugin()
 
             Blockbench.on('load_project', data => {
                 // Project.madcraft_project = data.model.madcraft_project || {
